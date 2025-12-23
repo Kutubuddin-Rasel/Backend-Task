@@ -55,6 +55,7 @@ interface IFolderModel extends Model<IFolderDocument> {
     findFavorites(userId: Types.ObjectId): Promise<IFolderDocument[]>;
     findRecent(userId: Types.ObjectId, limit?: number): Promise<IFolderDocument[]>;
     getAncestors(folderId: Types.ObjectId): Promise<IFolderDocument[]>;
+    getDescendantIds(folderId: Types.ObjectId): Promise<Types.ObjectId[]>;
 }
 
 folderSchema.statics.findByUserAndParent = function (
@@ -73,15 +74,48 @@ folderSchema.statics.findRecent = function (userId: Types.ObjectId, limit: numbe
 };
 
 folderSchema.statics.getAncestors = async function (folderId: Types.ObjectId): Promise<IFolderDocument[]> {
-    const ancestors: IFolderDocument[] = [];
-    let currentFolder = await this.findById(folderId);
+    const result = await this.aggregate([
+        { $match: { _id: new mongoose.Types.ObjectId(folderId) } },
+        {
+            $graphLookup: {
+                from: 'folders',
+                startWith: '$parentId',
+                connectFromField: 'parentId',
+                connectToField: '_id',
+                as: 'ancestors',
+                maxDepth: 20,
+                depthField: 'depth',
+            },
+        },
+        { $unwind: { path: '$ancestors', preserveNullAndEmptyArrays: true } },
+        { $replaceRoot: { newRoot: { $ifNull: ['$ancestors', { _id: null }] } } },
+        { $match: { _id: { $ne: null } } },
+        { $sort: { depth: -1 } },
+        { $project: { depth: 0 } },
+    ]);
 
-    while (currentFolder && currentFolder.parentId) {
-        currentFolder = await this.findById(currentFolder.parentId);
-        if (currentFolder) ancestors.unshift(currentFolder);
-    }
+    return result as IFolderDocument[];
+};
 
-    return ancestors;
+folderSchema.statics.getDescendantIds = async function (folderId: Types.ObjectId): Promise<Types.ObjectId[]> {
+    const result = await this.aggregate([
+        { $match: { _id: new mongoose.Types.ObjectId(folderId) } },
+        {
+            $graphLookup: {
+                from: 'folders',
+                startWith: '$_id',
+                connectFromField: '_id',
+                connectToField: 'parentId',
+                as: 'descendants',
+                maxDepth: 20,
+            },
+        },
+        { $unwind: '$descendants' },
+        { $replaceRoot: { newRoot: '$descendants' } },
+        { $project: { _id: 1 } },
+    ]);
+
+    return result.map((doc: { _id: Types.ObjectId }) => doc._id);
 };
 
 folderSchema.methods.getChildren = async function (): Promise<IFolderDocument[]> {
@@ -89,19 +123,8 @@ folderSchema.methods.getChildren = async function (): Promise<IFolderDocument[]>
 };
 
 folderSchema.methods.getAllDescendantIds = async function (): Promise<Types.ObjectId[]> {
-    const Folder = mongoose.model('Folder');
-    const descendantIds: Types.ObjectId[] = [];
-
-    const collectDescendants = async (parentId: Types.ObjectId) => {
-        const children = await Folder.find({ parentId }).select('_id');
-        for (const child of children) {
-            descendantIds.push(child._id);
-            await collectDescendants(child._id);
-        }
-    };
-
-    await collectDescendants(this._id);
-    return descendantIds;
+    const Folder = mongoose.model<IFolderDocument, IFolderModel>('Folder');
+    return Folder.getDescendantIds(this._id);
 };
 
 const Folder = mongoose.model<IFolderDocument, IFolderModel>('Folder', folderSchema);
