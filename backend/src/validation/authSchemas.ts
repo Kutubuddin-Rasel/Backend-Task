@@ -32,9 +32,16 @@ export const changePasswordSchema = z.object({
     newPassword: z.string().min(6, 'New password must be at least 6 characters'),
 });
 
+export const updateProfileSchema = z.object({
+    firstName: z.string().trim().min(1, 'First name cannot be empty').max(50, 'First name cannot exceed 50 characters').optional(),
+    lastName: z.string().trim().max(50, 'Last name cannot exceed 50 characters').optional(),
+    avatar: z.string().url('Avatar must be a valid URL').optional(),
+});
+
 export type LoginInput = z.infer<typeof loginSchema>;
 export type RegisterInput = z.infer<typeof registerSchema>;
 export type ForgotPasswordInput = z.infer<typeof forgotPasswordSchema>;
 export type VerifyOTPInput = z.infer<typeof verifyOTPSchema>;
 export type ResetPasswordInput = z.infer<typeof resetPasswordSchema>;
 export type ChangePasswordInput = z.infer<typeof changePasswordSchema>;
+export type UpdateProfileInput = z.infer<typeof updateProfileSchema>;

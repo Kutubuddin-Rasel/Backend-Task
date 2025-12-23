@@ -1,5 +1,5 @@
 export { authenticate, optionalAuth } from './auth';
-export { validate, sanitizeBody } from './validateRequest';
+export { sanitizeBody } from './validateRequest';
 export { checkStorageQuota, validateFileSize } from './checkStorage';
 export { uploadImages, uploadPDFs, uploadFiles, getFileType, getResourceType } from './upload';
 export { errorHandler, notFoundHandler, asyncHandler } from './errorHandler';

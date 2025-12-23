@@ -43,6 +43,24 @@ export const mongoIdParamSchema = z.object({
     id: z.string().regex(/^[a-fA-F0-9]{24}$/, 'Invalid ID format'),
 });
 
+export const copyTargetSchema = z.object({
+    targetFolderId: mongoIdOptional,
+});
+
+export const searchQuerySchema = z.object({
+    q: z.string().max(100, 'Search query cannot exceed 100 characters').optional(),
+    type: z.enum(['folder', 'file', 'note', 'image', 'pdf']).optional(),
+});
+
+export const calendarDateSchema = z.object({
+    date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/, 'Date must be in YYYY-MM-DD format').optional(),
+});
+
+export const calendarMonthSchema = z.object({
+    year: z.coerce.number().min(2000).max(2100).optional(),
+    month: z.coerce.number().min(1).max(12).optional(),
+});
+
 export type UploadFileInput = z.infer<typeof uploadFileSchema>;
 export type UpdateFileInput = z.infer<typeof updateFileSchema>;
 export type CopyFileInput = z.infer<typeof copyFileSchema>;
@@ -50,3 +68,6 @@ export type CreateFolderInput = z.infer<typeof createFolderSchema>;
 export type UpdateFolderInput = z.infer<typeof updateFolderSchema>;
 export type CreateNoteInput = z.infer<typeof createNoteSchema>;
 export type UpdateNoteInput = z.infer<typeof updateNoteSchema>;
+export type SearchQueryInput = z.infer<typeof searchQuerySchema>;
+export type CalendarDateInput = z.infer<typeof calendarDateSchema>;
+export type CalendarMonthInput = z.infer<typeof calendarMonthSchema>;
