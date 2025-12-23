@@ -10,7 +10,7 @@ A production-ready **Storage Management System** backend built with modern techn
 - **CSRF Protection** via SameSite cookie policy
 - **Rate Limiting** (auth: 5/15min, API: 100/15min, uploads: 50/hr)
 - **Password Encryption** using bcrypt (12 salt rounds)
-- **Input Validation** with Zod and express-validator
+- **Input Validation** with Zod schemas
 
 ### Architecture
 - **Clean Architecture** with Service Layer pattern
@@ -133,6 +133,14 @@ npm start
 | | |
 | `GET /api/storage/stats` | Storage usage stats |
 | `GET /api/storage/breakdown` | Storage by type |
+| `GET /api/storage/dashboard` | Dashboard stats |
+| | |
+| `GET /api/users/profile` | Get user profile |
+| `PUT /api/users/profile` | Update profile |
+| `POST /api/users/avatar` | Upload avatar |
+| `DELETE /api/users/avatar` | Remove avatar |
+| `PUT /api/users/change-password` | Change password |
+| `DELETE /api/users/account` | Delete account |
 | | |
 | `GET /api/search?q=...` | Global search |
 | `GET /api/favorites` | All favorited items |
