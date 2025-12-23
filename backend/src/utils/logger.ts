@@ -1,63 +1,51 @@
-import config from '../config';
-
 type LogLevel = 'debug' | 'info' | 'warn' | 'error';
 
-interface LogEntry {
-    level: LogLevel;
-    message: string;
-    timestamp: string;
-    data?: unknown;
-}
+const LOG_LEVELS: Record<LogLevel, number> = {
+    debug: 0,
+    info: 1,
+    warn: 2,
+    error: 3,
+};
 
 class Logger {
     private level: LogLevel;
-    private levels: Record<LogLevel, number> = { debug: 0, info: 1, warn: 2, error: 3 };
 
     constructor() {
-        this.level = (config.logLevel as LogLevel) || 'info';
+        this.level = (process.env.LOG_LEVEL as LogLevel) || 'info';
     }
 
     private shouldLog(level: LogLevel): boolean {
-        return this.levels[level] >= this.levels[this.level];
+        return LOG_LEVELS[level] >= LOG_LEVELS[this.level];
     }
 
-    private formatMessage(entry: LogEntry): string {
-        const prefix = `[${entry.timestamp}] [${entry.level.toUpperCase()}]`;
-        return entry.data ? `${prefix} ${entry.message} ${JSON.stringify(entry.data)}` : `${prefix} ${entry.message}`;
+    private formatMessage(level: string, message: string, meta?: unknown): string {
+        const timestamp = new Date().toISOString();
+        const metaStr = meta ? ` ${JSON.stringify(meta)}` : '';
+        return `[${timestamp}] [${level.toUpperCase()}] ${message}${metaStr}`;
     }
 
-    private log(level: LogLevel, message: string, data?: unknown): void {
-        if (!this.shouldLog(level)) return;
-
-        const entry: LogEntry = { level, message, timestamp: new Date().toISOString(), data };
-        const formatted = this.formatMessage(entry);
-
-        switch (level) {
-            case 'error':
-                console.error(formatted);
-                break;
-            case 'warn':
-                console.warn(formatted);
-                break;
-            default:
-                console.log(formatted);
+    debug(message: string, meta?: unknown): void {
+        if (this.shouldLog('debug')) {
+            console.debug(this.formatMessage('debug', message, meta));
         }
     }
 
-    debug(message: string, data?: unknown): void {
-        this.log('debug', message, data);
+    info(message: string, meta?: unknown): void {
+        if (this.shouldLog('info')) {
+            console.info(this.formatMessage('info', message, meta));
+        }
     }
 
-    info(message: string, data?: unknown): void {
-        this.log('info', message, data);
+    warn(message: string, meta?: unknown): void {
+        if (this.shouldLog('warn')) {
+            console.warn(this.formatMessage('warn', message, meta));
+        }
     }
 
-    warn(message: string, data?: unknown): void {
-        this.log('warn', message, data);
-    }
-
-    error(message: string, data?: unknown): void {
-        this.log('error', message, data);
+    error(message: string, meta?: unknown): void {
+        if (this.shouldLog('error')) {
+            console.error(this.formatMessage('error', message, meta));
+        }
     }
 }
 

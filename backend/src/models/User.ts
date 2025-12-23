@@ -67,9 +67,6 @@ const userSchema = new Schema<IUserDocument>(
     }
 );
 
-userSchema.index({ email: 1 });
-userSchema.index({ googleId: 1 }, { sparse: true });
-
 userSchema.virtual('fullName').get(function (this: IUserDocument) {
     return this.lastName ? `${this.firstName} ${this.lastName}` : this.firstName;
 });

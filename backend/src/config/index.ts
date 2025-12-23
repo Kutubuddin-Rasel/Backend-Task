@@ -1,5 +1,3 @@
-import { logger } from '../utils/logger';
-
 export interface IConfig {
     env: string;
     port: number;
@@ -101,7 +99,7 @@ export const validateConfig = (): void => {
     }
 
     if (config.env === 'production' && !config.cloudinary.cloudName) {
-        logger.warn('Cloudinary configuration is missing. File uploads will fail.');
+        console.warn('Cloudinary configuration is missing. File uploads will fail.');
     }
 };
 
