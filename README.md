@@ -11,6 +11,7 @@ A production-ready **Storage Management System** backend built with modern techn
 - **Rate Limiting** (auth: 5/15min, API: 100/15min, uploads: 50/hr)
 - **Password Encryption** using bcrypt (12 salt rounds)
 - **Input Validation** with Zod schemas
+- **App Lock (PIN)** - 4-6 digit secure PIN for additional protection
 
 ### Architecture
 - **Clean Architecture** with Service Layer pattern
@@ -135,12 +136,16 @@ npm start
 | `GET /api/storage/breakdown` | Storage by type |
 | `GET /api/storage/dashboard` | Dashboard stats |
 | | |
-| `GET /api/users/profile` | Get user profile |
+| `GET /api/users/profile` | Get user profile (includes `hasPin`) |
 | `PUT /api/users/profile` | Update profile |
 | `POST /api/users/avatar` | Upload avatar |
 | `DELETE /api/users/avatar` | Remove avatar |
 | `PUT /api/users/change-password` | Change password |
 | `DELETE /api/users/account` | Delete account |
+| `POST /api/users/pin` | Set App Lock PIN |
+| `POST /api/users/pin/verify` | Verify PIN |
+| `PUT /api/users/pin` | Change PIN |
+| `DELETE /api/users/pin` | Remove PIN |
 | | |
 | `GET /api/search?q=...` | Global search |
 | `GET /api/favorites` | All favorited items |

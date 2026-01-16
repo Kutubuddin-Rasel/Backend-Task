@@ -18,6 +18,7 @@ dist/
 # OS
 .DS_Store
 Thumbs.db
+**/.DS_Store
 
 # Logs
 logs/
@@ -31,17 +32,17 @@ coverage/
 tmp/
 temp/
 
-# Uploaded files (if stored locally during dev)
+# Uploaded files 
 uploads/
 
-# TypeScript (Critical for incremental builds)
+# TypeScript 
 *.tsbuildinfo
 
-# Docker (If you ever mount data locally instead of named volumes)
+# Docker 
 .docker/
 mongo-data/
 
-# Package Manager Logs (In case you or a teammate use Yarn/pnpm)
+# Package Manager Logs
 yarn-debug.log*
 yarn-error.log*
 pnpm-debug.log*
