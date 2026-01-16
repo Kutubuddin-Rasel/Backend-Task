@@ -44,6 +44,10 @@ const userSchema = new Schema<IUserDocument>(
             default: 0,
             min: [0, 'Used storage cannot be negative'],
         },
+        pin: {
+            type: String,
+            select: false,
+        },
         resetPasswordOTP: { type: String, select: false },
         resetPasswordExpires: { type: Date, select: false },
         isVerified: { type: Boolean, default: false },
@@ -57,6 +61,7 @@ const userSchema = new Schema<IUserDocument>(
             transform: (_doc, ret) => {
                 const result = ret as { [key: string]: unknown };
                 delete result.password;
+                delete result.pin;
                 delete result.resetPasswordOTP;
                 delete result.resetPasswordExpires;
                 delete result.__v;
@@ -75,14 +80,28 @@ userSchema.virtual('availableStorage').get(function (this: IUserDocument) {
     return this.storageLimit - this.usedStorage;
 });
 
+userSchema.virtual('hasPin').get(function (this: IUserDocument) {
+    return !!this.pin;
+});
+
 userSchema.pre('save', async function () {
-    if (!this.isModified('password')) return;
-    const salt = await bcrypt.genSalt(12);
-    this.password = await bcrypt.hash(this.password, salt);
+    if (this.isModified('password')) {
+        const salt = await bcrypt.genSalt(12);
+        this.password = await bcrypt.hash(this.password, salt);
+    }
+    if (this.isModified('pin') && this.pin) {
+        const salt = await bcrypt.genSalt(12);
+        this.pin = await bcrypt.hash(this.pin, salt);
+    }
 });
 
 userSchema.methods.comparePassword = async function (candidatePassword: string): Promise<boolean> {
     return bcrypt.compare(candidatePassword, this.password);
+};
+
+userSchema.methods.comparePin = async function (candidatePin: string): Promise<boolean> {
+    if (!this.pin) return false;
+    return bcrypt.compare(candidatePin, this.pin);
 };
 
 userSchema.methods.getStoragePercentage = function (): number {

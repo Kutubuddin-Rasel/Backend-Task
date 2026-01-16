@@ -27,11 +27,13 @@ export interface IUser {
     isVerified: boolean;
     isActive: boolean;
     lastLoginAt?: Date;
+    pin?: string;
 }
 
 export interface IUserDocument extends IUser, ITimestamps, Document {
     _id: Types.ObjectId;
     comparePassword(candidatePassword: string): Promise<boolean>;
+    comparePin(candidatePin: string): Promise<boolean>;
     getStoragePercentage(): number;
     hasAvailableStorage(requiredBytes: number): boolean;
 }

@@ -38,6 +38,25 @@ export const updateProfileSchema = z.object({
     avatar: z.string().url('Avatar must be a valid URL').optional(),
 });
 
+export const pinSchema = z.string().regex(/^\d{4,6}$/, 'PIN must be 4 to 6 digits');
+
+export const setPinSchema = z.object({
+    pin: pinSchema,
+});
+
+export const verifyPinSchema = z.object({
+    pin: pinSchema,
+});
+
+export const changePinSchema = z.object({
+    currentPin: pinSchema,
+    newPin: pinSchema,
+});
+
+export const removePinSchema = z.object({
+    password: z.string().min(1, 'Password is required to remove PIN'),
+});
+
 export type LoginInput = z.infer<typeof loginSchema>;
 export type RegisterInput = z.infer<typeof registerSchema>;
 export type ForgotPasswordInput = z.infer<typeof forgotPasswordSchema>;
@@ -45,3 +64,7 @@ export type VerifyOTPInput = z.infer<typeof verifyOTPSchema>;
 export type ResetPasswordInput = z.infer<typeof resetPasswordSchema>;
 export type ChangePasswordInput = z.infer<typeof changePasswordSchema>;
 export type UpdateProfileInput = z.infer<typeof updateProfileSchema>;
+export type SetPinInput = z.infer<typeof setPinSchema>;
+export type VerifyPinInput = z.infer<typeof verifyPinSchema>;
+export type ChangePinInput = z.infer<typeof changePinSchema>;
+export type RemovePinInput = z.infer<typeof removePinSchema>;

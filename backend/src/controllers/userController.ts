@@ -6,6 +6,7 @@ import { uploadBufferToCloudinary, deleteFromCloudinary } from '../config/cloudi
 
 export const getProfile = asyncHandler(async (req: Request, res: Response) => {
     const user = req.user as IUserDocument;
+    const userWithPin = await User.findById(user._id).select('pin').lean();
 
     ApiResponse.success(res, {
         id: user._id,
@@ -17,6 +18,7 @@ export const getProfile = asyncHandler(async (req: Request, res: Response) => {
         usedStorage: user.usedStorage,
         storagePercentage: user.getStoragePercentage(),
         isVerified: user.isVerified,
+        hasPin: !!userWithPin?.pin,
         createdAt: user.createdAt,
         updatedAt: user.updatedAt,
     }, 'Profile retrieved successfully');
@@ -116,4 +118,63 @@ export const deleteAccount = asyncHandler(async (req: Request, res: Response) =>
     ]);
 
     ApiResponse.success(res, null, 'Account deleted successfully');
+});
+
+export const setPin = asyncHandler(async (req: Request, res: Response) => {
+    const { pin } = req.body;
+    const user = req.user as IUserDocument;
+
+    if (user.pin) throw ApiError.badRequest('PIN already set. Use change PIN instead.');
+
+    user.pin = pin;
+    await user.save();
+
+    ApiResponse.success(res, null, 'PIN set successfully');
+});
+
+export const verifyPin = asyncHandler(async (req: Request, res: Response) => {
+    const { pin } = req.body;
+    const currentUser = req.user as IUserDocument;
+
+    const user = await User.findById(currentUser._id).select('+pin');
+    if (!user || !user.pin) throw ApiError.badRequest('PIN not set');
+
+    const isMatch = await user.comparePin(pin);
+    if (!isMatch) throw ApiError.unauthorized('Invalid PIN');
+
+    ApiResponse.success(res, { valid: true }, 'PIN verified successfully');
+});
+
+export const changePin = asyncHandler(async (req: Request, res: Response) => {
+    const { currentPin, newPin } = req.body;
+    const currentUser = req.user as IUserDocument;
+
+    const user = await User.findById(currentUser._id).select('+pin');
+    if (!user || !user.pin) throw ApiError.badRequest('PIN not set');
+
+    const isMatch = await user.comparePin(currentPin);
+    if (!isMatch) throw ApiError.badRequest('Current PIN is incorrect');
+
+    user.pin = newPin;
+    await user.save();
+
+    ApiResponse.success(res, null, 'PIN changed successfully');
+});
+
+export const removePin = asyncHandler(async (req: Request, res: Response) => {
+    const { password } = req.body;
+    const currentUser = req.user as IUserDocument;
+
+    const user = await User.findById(currentUser._id).select('+password +pin');
+    if (!user) throw ApiError.notFound('User');
+
+    if (!user.pin) throw ApiError.badRequest('PIN not set');
+
+    const isPasswordMatch = await user.comparePassword(password);
+    if (!isPasswordMatch) throw ApiError.badRequest('Invalid password');
+
+    user.pin = undefined;
+    await user.save();
+
+    ApiResponse.success(res, null, 'PIN removed successfully');
 });
